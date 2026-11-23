@@ -1,48 +1,22 @@
 name: Build APK
 on:
   push:
+    branches: [main, master]
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Tim du an
-        id: find
-        run: |
-          echo "== File trong repo =="
-          find . -maxdepth 3 -not -path './.git/*' | head -60
-          F=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)
-          if [ -z "$F" ]; then
-            Z=$(find . -iname '*.zip' -not -path './.git/*' | head -1)
-            if [ -n "$Z" ]; then
-              echo "Thay file zip: $Z -> dang giai nen"
-              mkdir -p _src
-              unzip -q -o "$Z" -d _src
-              F=$(find ./_src -name settings.gradle.kts | head -1)
-            fi
-          fi
-          if [ -z "$F" ]; then
-            echo "::error::Khong thay settings.gradle.kts trong repo. Hay upload cac file cua du an (hoac file CfgRunner.zip)."
-            exit 1
-          fi
-          echo "dir=$(dirname "$F")" >> "$GITHUB_OUTPUT"
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.7
-
-      - name: Build
-        working-directory: ${{ steps.find.outputs.dir }}
-        run: gradle assembleDebug --no-daemon --stacktrace
-
+          gradle-version: 8.5
+      - run: gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: CfgRunner
-          path: "**/app-debug.apk"
+          name: MeoGoPhim-apk
+          path: app/build/outputs/apk/debug/*.apk
